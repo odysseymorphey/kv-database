@@ -1,36 +1,54 @@
 package parser
 
-import "strings"
-
-type Query struct {
-	Command string
-	Key     string
-	Value   string
-}
+import (
+	"fmt"
+	"kv-database/models"
+	"kv-database/storage/engine"
+	"strings"
+)
 
 type Parser struct {
+	engine *engine.Engine
 }
 
-func (p *Parser) Parse(query string) {
-	var q Query
-	splited_query := strings.Split(query, "")
+func New() *Parser {
+	return &Parser{
+		engine: engine.New(),
+	}
+}
 
-	if !isCommand(splited_query[0]) {
-		return // todo: сделать нормальный ретерн
+func (p *Parser) Parse(query string) error {
+	if query == "" {
+		return fmt.Errorf("empty querry string")
 	}
 
-	q.Command = splited_query[0]
+	var q models.Query
+	splitQuery := strings.Split(query, "")
 
-	for i := 0; i < len(splited_query); i++ {
-
+	if !isCommand(splitQuery[0]) {
+		return fmt.Errorf("wrong command. available commands: GET, SET, DEL")
 	}
+
+	q.Command = splitQuery[0]
+
+	switch len(splitQuery) {
+	case 3:
+		q.Key = splitQuery[1]
+		q.Value = splitQuery[2]
+	case 2:
+		q.Key = splitQuery[1]
+	default:
+		return fmt.Errorf("invalid query string")
+	}
+
+	return nil
 }
 
 func isCommand(cmd string) bool {
-	commands := map[string]int{
-		"SET": 1,
-		"GET": 1,
-		"DEL": 1,
+	commands := map[string]interface{}{
+		"SET": struct{}{},
+		"GET": struct{}{},
+		"DEL": struct{}{},
 	}
 
 	if _, ok := commands[cmd]; !ok {
