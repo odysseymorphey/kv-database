@@ -2,14 +2,15 @@ package main
 
 import (
 	"bufio"
-	"kv-database/compute/parser"
+	"fmt"
+	"kv-database/compute"
 	"log"
 	"os"
 )
 
 func main() {
 	sc := bufio.NewScanner(os.Stdin)
-	p := parser.New()
+	cmp := compute.New()
 
 	for {
 		sc.Scan()
@@ -18,8 +19,13 @@ func main() {
 		}
 
 		// todo: сделать человеческую типизацию ошибок
-		if err := p.Parse(sc.Text()); err != nil {
+
+		// todo: сделать нормальный принтер
+		v, err := cmp.Parse(sc.Text())
+		if err != nil {
 			log.Println(err)
+		} else {
+			fmt.Println(v)
 		}
 	}
 

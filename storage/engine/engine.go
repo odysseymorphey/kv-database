@@ -5,17 +5,21 @@ import (
 	"kv-database/models"
 )
 
-type Engine struct {
+type Engine interface {
+	Begin(query models.Query) (string, error)
+}
+
+type engineImpl struct {
 	data map[string]string
 }
 
-func New() *Engine {
-	return &Engine{
+func New() Engine {
+	return &engineImpl{
 		data: make(map[string]string),
 	}
 }
 
-func (e *Engine) Begin(query models.Query) (string, error) {
+func (e *engineImpl) Begin(query models.Query) (string, error) {
 	switch query.Command {
 	case "GET":
 		return e.get(query.Key)
@@ -29,7 +33,7 @@ func (e *Engine) Begin(query models.Query) (string, error) {
 	return "", nil
 }
 
-func (e *Engine) get(key string) (string, error) {
+func (e *engineImpl) get(key string) (string, error) {
 	v, ok := e.data[key]
 	if !ok {
 		return "", fmt.Errorf("key not found")
@@ -38,11 +42,11 @@ func (e *Engine) get(key string) (string, error) {
 	return v, nil
 }
 
-func (e *Engine) set(key, value string) {
+func (e *engineImpl) set(key, value string) {
 	e.data[key] = value
 }
 
-func (e *Engine) delete(key string) error {
+func (e *engineImpl) delete(key string) error {
 	if _, ok := e.data[key]; !ok {
 		return fmt.Errorf("key not found")
 	}
