@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"sync"
 )
 
 type Engine interface {
@@ -11,6 +12,7 @@ type Engine interface {
 }
 
 type engineImpl struct {
+	mu   sync.Mutex
 	data map[string]string
 }
 
@@ -21,8 +23,11 @@ func New() Engine {
 }
 
 func (e *engineImpl) Get(key string) (string, error) {
-	v, ok := e.data[key]
-	if !ok {
+	e.mu.Lock()
+	v, exist := e.data[key]
+	e.mu.Unlock()
+
+	if !exist {
 		return "", fmt.Errorf("key not found")
 	}
 
@@ -30,15 +35,20 @@ func (e *engineImpl) Get(key string) (string, error) {
 }
 
 func (e *engineImpl) Set(key, value string) {
+	e.mu.Lock()
 	e.data[key] = value
+	e.mu.Unlock()
 }
 
 func (e *engineImpl) Delete(key string) error {
-	if _, ok := e.data[key]; !ok {
+	e.mu.Lock()
+	if _, exist := e.data[key]; !exist {
+		e.mu.Unlock()
 		return fmt.Errorf("key not found")
 	}
 
 	delete(e.data, key)
+	e.mu.Unlock()
 
 	return nil
 }
