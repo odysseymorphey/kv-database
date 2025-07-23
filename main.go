@@ -1,34 +1,21 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"kv-database/compute"
+	"kv-database/network"
 	"log"
-	"os"
 )
 
 func main() {
-	sc := bufio.NewScanner(os.Stdin)
-	cmp := compute.New()
+	n := network.New()
 
-	for {
-		sc.Scan()
-		if sc.Text() == "exit" {
-			os.Exit(0)
-		}
+	// todo: реализовать возможность конфигурации из .yaml
+	// todo: исключить дата рейсы и рейс кондишины
+	// todo: сделать грейсфул шатдаун
 
-		// todo: сделать человеческую типизацию ошибок
+	// todo: сделать человеческую типизацию ошибок
 
-		// todo: сделать нормальный принтер
-		r, err := cmp.Exec(sc.Text())
-		if err != nil {
-			log.Println(err)
-		} else {
-			if r.String() != "" {
-				fmt.Println(r)
-			}
-		}
+	// todo: добавить больше логов
+	if err := n.StartListening(); err != nil {
+		log.Println(err)
 	}
-
 }
