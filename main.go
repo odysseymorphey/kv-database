@@ -21,11 +21,13 @@ func main() {
 		// todo: сделать человеческую типизацию ошибок
 
 		// todo: сделать нормальный принтер
-		v, err := cmp.Parse(sc.Text())
+		r, err := cmp.Exec(sc.Text())
 		if err != nil {
 			log.Println(err)
 		} else {
-			fmt.Println(v)
+			if r.String() != "" {
+				fmt.Println(r)
+			}
 		}
 	}
 

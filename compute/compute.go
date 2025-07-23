@@ -1,21 +1,36 @@
 package compute
 
-import "kv-database/compute/parser"
+import (
+	"kv-database/compute/parser"
+	"kv-database/models"
+	"kv-database/storage"
+)
 
 type Compute interface {
-	Parse(query string) (string, error)
+	Exec(query string) (*models.Result, error)
 }
 
 type computeImpl struct {
-	parser parser.Parser
+	parser  parser.Parser
+	storage storage.Storage
 }
 
 func New() Compute {
 	return &computeImpl{
-		parser: parser.New(),
+		parser:  parser.New(),
+		storage: storage.New(),
 	}
 }
 
-func (c *computeImpl) Parse(query string) (string, error) {
-	return c.parser.Parse(query)
+func (c *computeImpl) Exec(queryStr string) (*models.Result, error) {
+	q, err := c.parser.Parse(queryStr)
+	if err != nil {
+		return nil, err
+	}
+
+	r, err := c.storage.Begin(q)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }

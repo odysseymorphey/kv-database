@@ -2,11 +2,12 @@ package engine
 
 import (
 	"fmt"
-	"kv-database/models"
 )
 
 type Engine interface {
-	Begin(query models.Query) (string, error)
+	Get(key string) (string, error)
+	Set(key, value string)
+	Delete(key string) error
 }
 
 type engineImpl struct {
@@ -19,21 +20,7 @@ func New() Engine {
 	}
 }
 
-func (e *engineImpl) Begin(query models.Query) (string, error) {
-	switch query.Command {
-	case "GET":
-		return e.get(query.Key)
-	case "SET":
-		e.set(query.Key, query.Value)
-	case "DEL":
-		err := e.delete(query.Key)
-		return "", err
-	}
-
-	return "", nil
-}
-
-func (e *engineImpl) get(key string) (string, error) {
+func (e *engineImpl) Get(key string) (string, error) {
 	v, ok := e.data[key]
 	if !ok {
 		return "", fmt.Errorf("key not found")
@@ -42,11 +29,11 @@ func (e *engineImpl) get(key string) (string, error) {
 	return v, nil
 }
 
-func (e *engineImpl) set(key, value string) {
+func (e *engineImpl) Set(key, value string) {
 	e.data[key] = value
 }
 
-func (e *engineImpl) delete(key string) error {
+func (e *engineImpl) Delete(key string) error {
 	if _, ok := e.data[key]; !ok {
 		return fmt.Errorf("key not found")
 	}

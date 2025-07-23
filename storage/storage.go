@@ -6,7 +6,7 @@ import (
 )
 
 type Storage interface {
-	Begin(query models.Query) (string, error)
+	Begin(query *models.Query) (*models.Result, error)
 }
 
 type storageImpl struct {
@@ -19,6 +19,24 @@ func New() Storage {
 	}
 }
 
-func (s *storageImpl) Begin(query models.Query) (string, error) {
-	return s.engine.Begin(query)
+func (s *storageImpl) Begin(query *models.Query) (*models.Result, error) {
+	res := &models.Result{}
+
+	switch query.Command {
+	case "GET":
+		r, err := s.engine.Get(query.Key)
+		if err != nil {
+			return nil, err
+		}
+		res.Store(r)
+	case "SET":
+		s.engine.Set(query.Key, query.Value)
+	case "DEL":
+		err := s.engine.Delete(query.Key)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return res, nil
 }

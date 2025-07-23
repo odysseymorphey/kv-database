@@ -8,7 +8,7 @@ import (
 )
 
 type Parser interface {
-	Parse(query string) (string, error)
+	Parse(query string) (*models.Query, error)
 }
 
 type parserImpl struct {
@@ -21,16 +21,16 @@ func New() Parser {
 	}
 }
 
-func (p *parserImpl) Parse(query string) (string, error) {
+func (p *parserImpl) Parse(query string) (*models.Query, error) {
 	if query == "" {
-		return "", fmt.Errorf("empty querry string")
+		return nil, fmt.Errorf("empty querry string")
 	}
 
-	var q models.Query
+	q := &models.Query{}
 	splitQuery := strings.Fields(query)
 
 	if !isCommand(splitQuery[0]) {
-		return "", fmt.Errorf("wrong command. available commands: GET, SET, DEL")
+		return nil, fmt.Errorf("wrong command. available commands: GET, SET, DEL")
 	}
 
 	q.Command = splitQuery[0]
@@ -42,15 +42,10 @@ func (p *parserImpl) Parse(query string) (string, error) {
 	case 2:
 		q.Key = splitQuery[1]
 	default:
-		return "", fmt.Errorf("invalid query string")
+		return nil, fmt.Errorf("invalid query string")
 	}
 
-	v, err := p.storage.Begin(q)
-	if err != nil {
-		return "", err
-	}
-
-	return v, nil
+	return q, nil
 }
 
 func isCommand(cmd string) bool {
